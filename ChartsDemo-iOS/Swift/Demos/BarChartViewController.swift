@@ -42,17 +42,18 @@ class BarChartViewController: DemoBaseViewController {
         
         chartView.delegate = self
         
-        chartView.drawBarShadowEnabled = false
         chartView.drawValueAboveBarEnabled = false
-        
-        chartView.maxVisibleCount = 60
+                
+//        chartView.fitBars = true
         
         let xAxis = chartView.xAxis
         xAxis.labelPosition = .bottom
         xAxis.labelFont = .systemFont(ofSize: 10)
         xAxis.granularity = 1
-        xAxis.labelCount = 7
+        xAxis.labelCount = 3
+        xAxis.forceLabelsEnabled = true
         xAxis.valueFormatter = DayAxisValueFormatter(chart: chartView)
+        xAxis.avoidFirstLastClippingEnabled = true
         
         let leftAxisFormatter = NumberFormatter()
         leftAxisFormatter.minimumFractionDigits = 0
@@ -62,30 +63,16 @@ class BarChartViewController: DemoBaseViewController {
         
         let leftAxis = chartView.leftAxis
         leftAxis.labelFont = .systemFont(ofSize: 10)
-        leftAxis.labelCount = 8
+        leftAxis.labelCount = 3
         leftAxis.valueFormatter = DefaultAxisValueFormatter(formatter: leftAxisFormatter)
         leftAxis.labelPosition = .outsideChart
         leftAxis.spaceTop = 0.15
-        leftAxis.axisMinimum = 0 // FIXME: HUH?? this replaces startAtZero = YES
+        leftAxis.axisMinimum = 0
         
-        let rightAxis = chartView.rightAxis
-        rightAxis.enabled = true
-        rightAxis.labelFont = .systemFont(ofSize: 10)
-        rightAxis.labelCount = 8
-        rightAxis.valueFormatter = leftAxis.valueFormatter
-        rightAxis.spaceTop = 0.15
-        rightAxis.axisMinimum = 0
+        chartView.rightAxis.enabled = false
         
         let l = chartView.legend
-        l.horizontalAlignment = .left
-        l.verticalAlignment = .bottom
-        l.orientation = .horizontal
-        l.drawInside = false
-        l.form = .circle
-        l.formSize = 9
-        l.font = UIFont(name: "HelveticaNeue-Light", size: 11)!
-        l.xEntrySpace = 4
-//        chartView.legend = l
+        l.enabled = false
 
         let marker = XYMarkerView(color: UIColor(white: 180/250, alpha: 1),
                                   font: .systemFont(ofSize: 12),
@@ -96,8 +83,11 @@ class BarChartViewController: DemoBaseViewController {
         marker.minimumSize = CGSize(width: 80, height: 40)
         chartView.marker = marker
         
-        sliderX.value = 12
+        sliderX.value = 3
         sliderY.value = 50
+        
+        chartView.xAxisRenderer = CustomXAxisRenderer(viewPortHandler: chartView.xAxisRenderer.viewPortHandler, axis: chartView.xAxis, transformer: chartView.xAxisRenderer.transformer)
+        
         slidersValueChanged(nil)
     }
     
@@ -116,11 +106,7 @@ class BarChartViewController: DemoBaseViewController {
         let yVals = (start..<start+count+1).map { (i) -> BarChartDataEntry in
             let mult = range + 1
             let val = Double(arc4random_uniform(mult))
-            if arc4random_uniform(100) < 25 {
-                return BarChartDataEntry(x: Double(i), y: val, icon: UIImage(named: "icon"))
-            } else {
-                return BarChartDataEntry(x: Double(i), y: val)
-            }
+            return BarChartDataEntry(x: Double(i), y: val+1)
         }
         
         var set1: BarChartDataSet! = nil
@@ -153,5 +139,45 @@ class BarChartViewController: DemoBaseViewController {
         sliderTextY.text = "\(Int(sliderY.value))"
         
         self.updateChartData()
+    }
+}
+
+/// guarantees that min and max are labeled and that labels only appear on actual values
+class CustomXAxisRenderer: XAxisRenderer {
+    override func computeAxisValues(min: Double, max: Double) {
+        
+        guard min != .greatestFiniteMagnitude, max != -.greatestFiniteMagnitude else {
+            axis.entries = []
+            axis.centeredEntries = []
+            return
+        }
+        
+        let actualMin = Int(ceil(min))
+        let actualMax = Int(floor(max))
+        
+        let range = abs(actualMax-actualMin)
+        
+        let labelCount: Int
+        if range == 0 {
+            axis.entries = [Double(actualMin)]
+            return
+        } else if range % 2 == 0 {
+            labelCount = 3
+        } else if range % 3 == 0 {
+            labelCount = 4
+        } else {
+            labelCount = 2 // everything should be divisible by 1
+        }
+        
+        let interval = range / (labelCount - 1)
+        
+        // Ensure stops contains at least n elements.
+        axis.entries.removeAll(keepingCapacity: true)
+        axis.entries.reserveCapacity(labelCount)
+        
+        let values = stride(from: actualMin, to: actualMax+1, by: interval).map(Double.init)
+        axis.entries.append(contentsOf: values)
+        
+        computeSize()
     }
 }

@@ -120,13 +120,8 @@ class LineChart1ViewController: DemoBaseViewController {
 
         let value = ChartDataEntry(x: Double(3), y: 3)
         set1.addEntryOrdered(value)
-        let gradientColors = [ChartColorTemplates.colorFromString("#00ff0000").cgColor,
-                              ChartColorTemplates.colorFromString("#ffff0000").cgColor]
-        let gradient = CGGradient(colorsSpace: nil, colors: gradientColors as CFArray, locations: nil)!
-
-        set1.fillAlpha = 1
-        set1.fill = LinearGradientFill(gradient: gradient, angle: 90)
-        set1.drawFilledEnabled = true
+        
+        set1.drawFilledEnabled = false
 
         let data = LineChartData(dataSet: set1)
 
@@ -138,28 +133,30 @@ class LineChart1ViewController: DemoBaseViewController {
             dataSet.lineDashLengths = nil
             dataSet.highlightLineDashLengths = nil
             dataSet.setColors(.black, .red, .white)
-            dataSet.setCircleColor(.black)
+//            dataSet.setCircleColor(.black)
             dataSet.gradientPositions = [0, 40, 100]
-            dataSet.lineWidth = 1
-            dataSet.circleRadius = 3
+            dataSet.lineWidth = 5
+//            dataSet.circleRadius = 3
             dataSet.drawCircleHoleEnabled = false
             dataSet.valueFont = .systemFont(ofSize: 9)
             dataSet.formLineDashLengths = nil
             dataSet.formLineWidth = 1
             dataSet.formSize = 15
+            dataSet.drawCirclesEnabled = false
         } else {
-            dataSet.lineDashLengths = [5, 2.5]
-            dataSet.highlightLineDashLengths = [5, 2.5]
+//            dataSet.lineDashLengths = [5, 2.5]
+//            dataSet.highlightLineDashLengths = [5, 2.5]
             dataSet.setColor(.black)
-            dataSet.setCircleColor(.black)
+//            dataSet.setCircleColor(.black)
             dataSet.gradientPositions = nil
-            dataSet.lineWidth = 1
-            dataSet.circleRadius = 3
+            dataSet.lineWidth = 5
+//            dataSet.circleRadius = 3
             dataSet.drawCircleHoleEnabled = false
             dataSet.valueFont = .systemFont(ofSize: 9)
             dataSet.formLineDashLengths = [5, 2.5]
             dataSet.formLineWidth = 1
             dataSet.formSize = 15
+            dataSet.drawCirclesEnabled = false
         }
     }
 
