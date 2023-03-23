@@ -398,6 +398,7 @@ open class LineChartRenderer: LineRadarRenderer
             var firstPoint = true
             
             let shouldDisconnectSegments = dataSet.drawCirclesEnabled && !isDrawSteppedEnabled
+            let shouldRoundJoints = !shouldDisconnectSegments && !isDrawSteppedEnabled
 
             let path = CGMutablePath()
             for x in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
@@ -448,9 +449,16 @@ open class LineChartRenderer: LineRadarRenderer
                     drawGradientLine(context: context, dataSet: dataSet, spline: path, matrix: valueToPixelMatrix)
                 } else {
                     context.beginPath()
-                    context.addPath(path)
-                    context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
-                    context.strokePath()
+                    if shouldRoundJoints {
+                        context.addPath(path)
+                        context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+                        context.strokePath()
+                    } else {
+                        let roundedPath = path.copy(strokingWithWidth: dataSet.lineWidth, lineCap: .round, lineJoin: .round, miterLimit: 0)
+                        context.addPath(roundedPath)
+                        context.setFillColor(dataSet.color(atIndex: 0).cgColor)
+                        context.fillPath()
+                    }
                 }
             }
         }
